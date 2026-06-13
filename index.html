@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🐾 Animal Rescue Maths 🦁</title>
+<style>
+  :root {
+    --grass: #7ec850;
+    --grass-dark: #5fa83a;
+    --sky: #aee6ff;
+    --sun: #ffd23f;
+    --leaf: #3c8d2f;
+    --card: #fffdf5;
+    --ink: #4a3b2a;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0; padding: 0;
+    font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", system-ui, sans-serif;
+    background: linear-gradient(var(--sky) 0%, var(--sky) 55%, var(--grass) 55%, var(--grass-dark) 100%);
+    min-height: 100vh;
+    color: var(--ink);
+    overflow-x: hidden;
+    user-select: none;
+  }
+
+  .sun {
+    position: fixed; top: 18px; right: 28px;
+    width: 70px; height: 70px;
+    background: radial-gradient(circle at 50% 50%, #fff07a, var(--sun));
+    border-radius: 50%;
+    box-shadow: 0 0 40px #ffe06688;
+    z-index: 0;
+    animation: bob 4s ease-in-out infinite;
+  }
+  @keyframes bob { 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(8px);} }
+
+  .wrap {
+    position: relative; z-index: 1;
+    max-width: 580px; margin: 0 auto;
+    padding: 16px 16px 40px;
+    text-align: center;
+  }
+
+  h1 {
+    margin: 8px 0 2px; font-size: 2.1rem; color: #2c6e1f;
+    text-shadow: 2px 2px 0 #fff, 4px 4px 0 #00000018;
+  }
+  .subtitle { margin: 0 0 14px; font-size: 1rem; color: #3c5a2a; }
+
+  .levels { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin: 0 0 16px; }
+  .lvl {
+    font-family: inherit; font-size: .82rem;
+    padding: 9px 12px; border-radius: 14px;
+    border: 3px solid #fff; background:#fff; color: var(--ink);
+    cursor:pointer; box-shadow: 0 4px 0 #00000022; font-weight: bold;
+    transition: transform .08s;
+  }
+  .lvl:active { transform: translateY(2px); }
+  .lvl.active { background: var(--leaf); color:#fff; border-color:#fff; }
+
+  .scorebar {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--card); border: 4px solid #fff; border-radius: 18px;
+    padding: 10px 16px; box-shadow: 0 6px 0 #00000022;
+    font-size: 1.05rem; margin-bottom: 16px;
+  }
+  .scorebar .chip { font-weight: bold; }
+  .hearts { font-size: 1.3rem; letter-spacing: 2px; }
+
+  .stage {
+    background: var(--card); border: 5px solid #fff; border-radius: 28px;
+    padding: 20px 18px 24px; box-shadow: 0 10px 0 #00000022; position: relative;
+  }
+
+  .animal {
+    font-size: 5.2rem; line-height: 1; display: inline-block;
+    animation: hop 1.6s ease-in-out infinite;
+    filter: drop-shadow(0 8px 6px #0000002a);
+  }
+  @keyframes hop { 0%,100%{ transform: translateY(0) rotate(-2deg);} 50%{ transform: translateY(-14px) rotate(2deg);} }
+
+  .aname { font-weight: bold; color: #2c6e1f; font-size: 1.1rem; margin: -2px 0 4px; }
+
+  .tag {
+    display:inline-block; font-size:.78rem; font-weight:bold;
+    background:#eaf7e0; color:#3c8d2f; border:2px solid #c9e9b6;
+    border-radius:999px; padding:3px 12px; margin: 2px 0 2px;
+  }
+
+  .speech {
+    display: inline-block; background: #fff; border: 3px solid #ffd23f;
+    border-radius: 16px; padding: 7px 14px; margin: 6px auto 4px;
+    font-size: .98rem; min-height: 1.3em; max-width: 90%;
+  }
+
+  .question {
+    font-size: 2.4rem; font-weight: bold; margin: 10px 0 18px;
+    color: #2c3e50; letter-spacing: 1px;
+  }
+
+  .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .answers.three { grid-template-columns: 1fr 1fr 1fr; }
+
+  .ans {
+    font-family: inherit; font-size: 1.9rem; font-weight: bold;
+    padding: 18px 0; border: none; border-radius: 18px;
+    background: linear-gradient(#ffe680, #ffcf3f); color: #6a4e00;
+    cursor: pointer; box-shadow: 0 6px 0 #c79b18;
+    transition: transform .08s, box-shadow .08s;
+  }
+  .ans:active { transform: translateY(4px); box-shadow: 0 2px 0 #c79b18; }
+  .ans.correct { background: linear-gradient(#9be67a, #4caf50); color:#fff; box-shadow:0 6px 0 #2f7d2a; }
+  .ans.wrong   { background: linear-gradient(#ffb59e, #ff7043); color:#fff; box-shadow:0 6px 0 #c1452a; }
+  .ans:disabled { cursor: default; }
+
+  /* true / false buttons */
+  .tf .ans.t { background: linear-gradient(#a6e9a0, #5bc24f); color:#fff; box-shadow:0 6px 0 #3a8a30; }
+  .tf .ans.f { background: linear-gradient(#ffb1a0, #ff7a5c); color:#fff; box-shadow:0 6px 0 #c1452a; }
+
+  /* input answer */
+  .inputrow { display:flex; gap:10px; justify-content:center; align-items:stretch; }
+  .numin {
+    font-family: inherit; font-size: 2rem; font-weight:bold; text-align:center;
+    width: 150px; padding: 12px 10px; border: 4px solid #ffcf3f;
+    border-radius: 16px; color:#2c3e50; outline:none; background:#fff;
+  }
+  .numin:focus { border-color: var(--leaf); }
+  .go {
+    font-family: inherit; font-size: 1.4rem; font-weight:bold;
+    padding: 0 22px; border:none; border-radius:16px;
+    background: linear-gradient(#9be67a, #4caf50); color:#fff;
+    cursor:pointer; box-shadow:0 6px 0 #2f7d2a;
+  }
+  .go:active { transform: translateY(4px); box-shadow:0 2px 0 #2f7d2a; }
+
+  .restart {
+    margin-top: 18px; font-family: inherit; font-size: 1.05rem;
+    padding: 12px 22px; border-radius: 18px; border: none;
+    background: var(--leaf); color: #fff; cursor: pointer;
+    box-shadow: 0 5px 0 #2c6e1f; font-weight: bold;
+  }
+  .restart:active { transform: translateY(3px); box-shadow: 0 2px 0 #2c6e1f; }
+
+  .zoo {
+    margin-top: 18px; background: var(--card); border: 4px solid #fff;
+    border-radius: 20px; padding: 10px 14px; box-shadow: 0 6px 0 #00000022; min-height: 48px;
+  }
+  .zoo h3 { margin: 4px 0 6px; font-size: 1rem; color:#3c5a2a; }
+  .zoo .friends { font-size: 1.8rem; line-height: 1.3; letter-spacing: 4px; }
+
+  .progress { font-size: .9rem; color:#3c5a2a; margin: 4px 0 0; }
+
+  .confetti {
+    position: fixed; top: -20px; font-size: 1.4rem; z-index: 5;
+    pointer-events: none; animation: fall 2.2s linear forwards;
+  }
+  @keyframes fall { to { transform: translateY(110vh) rotate(540deg); opacity: 0; } }
+
+  .win { font-size: 1.35rem; color: #2c6e1f; font-weight: bold; line-height: 1.5; }
+  .win .big { font-size: 3.5rem; display:block; margin: 6px 0; }
+
+  .tiny { font-size: .8rem; color:#3c5a2a; opacity:.8; margin-top: 26px; }
+</style>
+</head>
+<body>
+  <div class="sun"></div>
+  <div class="wrap">
+    <h1>🐾 Animal Rescue Maths 🦁</h1>
+    <p class="subtitle">Answer correctly to rescue a trapped animal friend!</p>
+
+    <div class="levels" id="levels">
+      <button class="lvl active" data-level="1">🐣 1 · Single digit + −</button>
+      <button class="lvl" data-level="2">🦊 2 · Double digit + −</button>
+      <button class="lvl" data-level="3">🐯 3 · × up to 12</button>
+      <button class="lvl" data-level="4">🐘 4 · Triple digit + −</button>
+      <button class="lvl" data-level="5">🦒 5 · ÷ (to 100 ÷ 10)</button>
+      <button class="lvl" data-level="6">🦁 6 · Mix of everything</button>
+    </div>
+
+    <div class="scorebar">
+      <span class="chip">⭐ <span id="score">0</span></span>
+      <span class="chip">🔥 Streak: <span id="streak">0</span></span>
+      <span class="hearts" id="hearts">❤️❤️❤️</span>
+    </div>
+
+    <div class="stage" id="stage"></div>
+
+    <div class="zoo">
+      <h3>🏆 Animals you've rescued</h3>
+      <div class="friends" id="friends">—</div>
+      <p class="progress" id="progress"></p>
+    </div>
+
+    <button class="restart" id="restart">🔄 Start Over</button>
+
+    <p class="tiny">Animal Rescue Maths · Made for curious kids aged 6–9 · No internet needed</p>
+  </div>
+
+<script>
+(function(){
+  // Only animals whose emoji genuinely matches the name — no confusing mismatches.
+  const ANIMALS = [
+    // 🦘 Australian (accurate)
+    {e:"🦘",n:"Kangaroo"}, {e:"🐨",n:"Koala"}, {e:"🐊",n:"Crocodile"},
+    // 🐾 less common animals
+    {e:"🦬",n:"Bison"}, {e:"🐃",n:"Water Buffalo"}, {e:"🐪",n:"Camel"},
+    {e:"🦥",n:"Sloth"}, {e:"🦦",n:"Otter"}, {e:"🦨",n:"Skunk"}, {e:"🦡",n:"Badger"},
+    {e:"🦝",n:"Raccoon"}, {e:"🦙",n:"Llama"}, {e:"🦛",n:"Hippo"}, {e:"🦏",n:"Rhino"},
+    {e:"🦫",n:"Beaver"}, {e:"🦔",n:"Hedgehog"}, {e:"🦇",n:"Bat"}, {e:"🦌",n:"Deer"},
+    {e:"🐆",n:"Leopard"}, {e:"🐗",n:"Wild Boar"}, {e:"🦍",n:"Gorilla"}, {e:"🦧",n:"Orangutan"},
+    // 🐦 birds
+    {e:"🦅",n:"Eagle"}, {e:"🦉",n:"Owl"}, {e:"🦜",n:"Parrot"}, {e:"🦚",n:"Peacock"},
+    {e:"🦩",n:"Flamingo"}, {e:"🦢",n:"Swan"}, {e:"🐧",n:"Penguin"}, {e:"🦆",n:"Duck"},
+    {e:"🦤",n:"Dodo"}, {e:"🐔",n:"Chicken"},
+    // 🐠 sea & water
+    {e:"🐬",n:"Dolphin"}, {e:"🐳",n:"Whale"}, {e:"🦈",n:"Shark"}, {e:"🐙",n:"Octopus"},
+    {e:"🦭",n:"Seal"}, {e:"🐢",n:"Sea Turtle"}, {e:"🐠",n:"Clownfish"}, {e:"🐡",n:"Pufferfish"},
+    {e:"🦀",n:"Crab"}, {e:"🦐",n:"Shrimp"}, {e:"🦑",n:"Squid"}, {e:"🐌",n:"Snail"},
+    // 🦋 minibeasts
+    {e:"🦋",n:"Butterfly"}, {e:"🐝",n:"Bee"}, {e:"🐞",n:"Ladybird"}, {e:"🐜",n:"Ant"},
+    {e:"🦗",n:"Cricket"}, {e:"🐍",n:"Snake"}, {e:"🦎",n:"Lizard"}, {e:"🐸",n:"Frog"},
+    // 🦁 common favourites
+    {e:"🦁",n:"Lion"}, {e:"🐯",n:"Tiger"}, {e:"🐘",n:"Elephant"}, {e:"🦒",n:"Giraffe"},
+    {e:"🦓",n:"Zebra"}, {e:"🐼",n:"Panda"}, {e:"🐻",n:"Bear"}, {e:"🐻‍❄️",n:"Polar Bear"},
+    {e:"🦊",n:"Fox"}, {e:"🐺",n:"Wolf"}, {e:"🐰",n:"Rabbit"}, {e:"🐵",n:"Monkey"},
+    {e:"🐭",n:"Mouse"}, {e:"🐹",n:"Hamster"}, {e:"🐶",n:"Dog"}, {e:"🐱",n:"Cat"},
+    {e:"🐮",n:"Cow"}, {e:"🐷",n:"Pig"}, {e:"🐴",n:"Horse"}, {e:"🐑",n:"Sheep"}, {e:"🐐",n:"Goat"}
+  ];
+  const HAPPY = ["Yay! 🎉","Woohoo!","You did it!","Rescued! 🐾","Great job!","High five!","Super!","Brilliant!","Hooray!"];
+  const TRY   = ["Oops! Not quite 💛","Almost! Keep going.","So close — try the next one!","Good effort!"];
+
+  const TO_RESCUE = 10; // animals needed to win
+
+  let level = 1, score = 0, streak = 0, hearts = 3;
+  let freed = [], answer = 0, locked = false;
+
+  const $ = id => document.getElementById(id);
+  function rint(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=rint(0,i);[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+  // ---- problem generators: return {expr, ans} ----
+  function gen(lvl){
+    switch(lvl){
+      case 1: { // single digit add/subtract
+        if(Math.random()<0.5){ const a=rint(1,9), b=rint(1,9); return {expr:a+" + "+b, ans:a+b}; }
+        let a=rint(1,9), b=rint(1,9); if(b>a)[a,b]=[b,a]; return {expr:a+" − "+b, ans:a-b};
+      }
+      case 2: { // double digit add/subtract
+        if(Math.random()<0.5){ const a=rint(10,99), b=rint(10,99); return {expr:a+" + "+b, ans:a+b}; }
+        let a=rint(10,99), b=rint(10,99); if(b>a)[a,b]=[b,a]; return {expr:a+" − "+b, ans:a-b};
+      }
+      case 3: { // multiply up to 12
+        const a=rint(1,12), b=rint(1,12); return {expr:a+" × "+b, ans:a*b};
+      }
+      case 4: { // triple digit add/subtract
+        if(Math.random()<0.5){ const a=rint(100,999), b=rint(100,999); return {expr:a+" + "+b, ans:a+b}; }
+        let a=rint(100,999), b=rint(100,999); if(b>a)[a,b]=[b,a]; return {expr:a+" − "+b, ans:a-b};
+      }
+      case 5: { // division: number up to 100 ÷ number up to 10, whole answers
+        const d=rint(2,10); const q=rint(2,Math.floor(100/d)); return {expr:(d*q)+" ÷ "+d, ans:q};
+      }
+      case 6: default: { // mix of everything
+        return gen(rint(1,5));
+      }
+    }
+  }
+
+  function buildChoices(correct, n){
+    const set = new Set([correct]); let guard=0;
+    const spread = Math.max(2, Math.round(Math.abs(correct)*0.12)+rint(1,4));
+    while(set.size<n && guard++<60){
+      const cand = correct + rint(1,spread)*(Math.random()<0.5?-1:1);
+      if(cand>=0) set.add(cand);
+    }
+    return shuffle([...set]);
+  }
+
+  function updateBar(){
+    $("score").textContent = score;
+    $("streak").textContent = streak;
+    $("hearts").textContent = "❤️".repeat(hearts) + "🖤".repeat(3-hearts);
+    $("friends").textContent = freed.length ? freed.map(a=>a.e).join(" ") : "—";
+    $("progress").textContent = freed.length + " / " + TO_RESCUE + " rescued";
+  }
+
+  function newRound(){
+    if(hearts<=0) return gameOver(false);
+    if(freed.length>=TO_RESCUE) return gameOver(true);
+
+    locked = false;
+    const p = gen(level);
+    answer = p.ans;
+    const animal = ANIMALS[rint(0,ANIMALS.length-1)];
+
+    // pick a question style
+    const styles = ["choice","tf","input"];
+    const style = styles[rint(0,styles.length-1)];
+
+    let tag, body;
+    if(style === "choice"){
+      tag = "🔢 Pick the answer";
+      body = '<div class="question">'+p.expr+' = ?</div><div class="answers" id="answers"></div>';
+    } else if(style === "tf"){
+      tag = "✅ True or False?";
+      const show = Math.random()<0.5 ? p.ans : p.ans + (rint(1,4)*(Math.random()<0.5?-1:1));
+      window.__tfTrue = (show === p.ans);
+      body = '<div class="question">'+p.expr+' = '+show+'</div>' +
+             '<div class="answers tf" id="answers"></div>';
+    } else {
+      tag = "⌨️ Type the answer";
+      body = '<div class="question">'+p.expr+' = ?</div>' +
+             '<div class="inputrow"><input class="numin" id="numin" type="number" inputmode="numeric" autocomplete="off" />' +
+             '<button class="go" id="go">Go!</button></div>';
+    }
+
+    $("stage").innerHTML =
+      '<div class="animal">'+animal.e+'</div>' +
+      '<div class="aname">'+animal.n+'</div>' +
+      '<div><span class="tag">'+tag+'</span></div>' +
+      '<div><span class="speech" id="speech">Help this '+animal.n+' get free! 🤔</span></div>' +
+      body;
+
+    if(style === "choice"){
+      const choices = buildChoices(p.ans, 4);
+      const box = $("answers");
+      choices.forEach(c=>{
+        const b=document.createElement("button");
+        b.className="ans"; b.textContent=c;
+        b.onclick=()=>judge(c===p.ans, b, animal);
+        box.appendChild(b);
+      });
+    } else if(style === "tf"){
+      const box = $("answers");
+      const t=document.createElement("button");
+      t.className="ans t"; t.textContent="✅ True";
+      t.onclick=()=>judge(window.__tfTrue===true, t, animal);
+      const f=document.createElement("button");
+      f.className="ans f"; f.textContent="❌ False";
+      f.onclick=()=>judge(window.__tfTrue===false, f, animal);
+      box.appendChild(t); box.appendChild(f);
+    } else {
+      const inp=$("numin"), go=$("go");
+      const submit=()=>{
+        if(locked) return;
+        if(inp.value.trim()==="") return;
+        judge(Number(inp.value)===p.ans, null, animal);
+      };
+      go.onclick=submit;
+      inp.onkeydown=e=>{ if(e.key==="Enter") submit(); };
+      setTimeout(()=>inp.focus(), 50);
+    }
+
+    updateBar();
+  }
+
+  function judge(correct, btn, animal){
+    if(locked) return;
+    locked = true;
+
+    if(correct){
+      if(btn) btn.classList.add("correct");
+      score += 10 + streak;
+      streak += 1;
+      freed.push(animal);
+      $("speech").textContent = HAPPY[rint(0,HAPPY.length-1)];
+      celebrate();
+      updateBar();
+      setTimeout(newRound, 1100);
+    } else {
+      if(btn) btn.classList.add("wrong");
+      streak = 0; hearts -= 1;
+      $("speech").textContent = TRY[rint(0,TRY.length-1)] + " The answer was " + answer + ".";
+      // reveal correct multiple-choice option
+      const box = $("answers");
+      if(box) [...box.children].forEach(b=>{
+        if(Number(b.textContent) === answer) b.classList.add("correct");
+        b.disabled = true;
+      });
+      const inp=$("numin"); if(inp) inp.disabled=true;
+      const go=$("go"); if(go) go.disabled=true;
+      updateBar();
+      setTimeout(newRound, 1700);
+    }
+  }
+
+  function celebrate(){
+    const emojis=["🎉","⭐","🌟","✨","🍃","🏆","💛","🐾"];
+    for(let i=0;i<14;i++){
+      const c=document.createElement("div");
+      c.className="confetti"; c.textContent=emojis[rint(0,emojis.length-1)];
+      c.style.left=rint(0,100)+"vw";
+      c.style.animationDelay=(Math.random()*0.4)+"s";
+      document.body.appendChild(c);
+      setTimeout(()=>c.remove(),2600);
+    }
+  }
+
+  function gameOver(won){
+    if(won){
+      $("stage").innerHTML =
+        '<div class="win"><span class="big">🎊🦁🎊</span>' +
+        'You rescued all ' + TO_RESCUE + ' animals!<br>Final score: ' + score + ' ⭐' +
+        '<div class="zoo" style="margin-top:14px"><div class="friends">'+freed.map(a=>a.e).join(" ")+'</div></div></div>';
+      for(let k=0;k<3;k++) setTimeout(celebrate, k*400);
+    } else {
+      $("stage").innerHTML =
+        '<div class="win"><span class="big">🐾</span>Good try, rescuer!<br>' +
+        'You rescued ' + freed.length + ' animal' + (freed.length===1?"":"s") +
+        ' and scored ' + score + ' ⭐.<br>' +
+        '<span style="font-size:1rem">Press <b>Start Over</b> to play again!</span></div>';
+    }
+    updateBar();
+  }
+
+  function start(){
+    score=0; streak=0; hearts=3; freed=[]; locked=false;
+    newRound();
+  }
+
+  document.querySelectorAll(".lvl").forEach(b=>{
+    b.onclick=()=>{
+      document.querySelectorAll(".lvl").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      level=Number(b.dataset.level);
+      start();
+    };
+  });
+  $("restart").onclick=start;
+
+  start();
+})();
+</script>
+</body>
+</html>
